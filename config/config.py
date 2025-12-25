@@ -4,7 +4,7 @@
 """
 
 # 模型配置
-MODEL_NAME = "facebook/musicgen-small"  # 可选: small, medium, large
+MODEL_NAME = "facebook/musicgen-medium"  # 可选: small, medium, large
 DEVICE = "cuda"  # 自动检测会在运行时确定
 
 # 生成参数

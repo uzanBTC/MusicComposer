@@ -1,7 +1,7 @@
 # MusicGen 项目依赖
-torch>=2.0.0
-torchvision
-torchaudio
+# 注意：torch、torchvision、torchaudio 应通过 conda 安装，不要使用 pip
+# 详见 README.md 中的安装说明
+
 transformers>=4.30.0
 datasets
 scipy>=1.10.0
