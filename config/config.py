@@ -17,15 +17,19 @@ if not os.environ.get("HF_ENDPOINT"):
 # ==================
 # 模型配置
 # ==================
-MODEL_NAME = "facebook/musicgen-medium"  # 可选: small, medium, large
+# 可选: facebook/musicgen-small (约4GB显存)
+#       facebook/musicgen-medium (约8GB显存)
+#       facebook/musicgen-large (约16GB显存)
+MODEL_NAME = "facebook/musicgen-medium"
 DEVICE = "cuda"  # 自动检测会在运行时确定
 
 # ==================
 # 生成参数
 # ==================
+# tokens 与时长对应：256≈5秒, 512≈10秒, 1024≈20秒, 1536≈30秒
 DEFAULT_MAX_TOKENS = 512  # 约 10 秒
 DEFAULT_GUIDANCE_SCALE = 3.0
-DEFAULT_SAMPLE_RATE = 32000
+DEFAULT_SAMPLE_RATE = 32000  # MusicGen 要求的采样率
 
 # ==================
 # 路径配置

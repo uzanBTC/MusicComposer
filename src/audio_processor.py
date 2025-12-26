@@ -4,8 +4,12 @@
 """
 import numpy as np
 import scipy.io.wavfile as wavfile
+import scipy.signal
 from pathlib import Path
 from typing import Tuple, Optional
+
+# MusicGen 模型要求的采样率
+TARGET_SAMPLE_RATE = 32000
 
 
 class AudioProcessor:
@@ -68,17 +72,44 @@ class AudioProcessor:
         return True
     
     @staticmethod
-    def preprocess_audio(audio_data: np.ndarray) -> np.ndarray:
+    def resample_audio(audio_data: np.ndarray, original_rate: int, target_rate: int = TARGET_SAMPLE_RATE) -> np.ndarray:
+        """
+        重采样音频到目标采样率
+        
+        Args:
+            audio_data: 音频数据
+            original_rate: 原始采样率
+            target_rate: 目标采样率（默认 32000Hz）
+            
+        Returns:
+            重采样后的音频数据
+        """
+        if original_rate == target_rate:
+            return audio_data
+        
+        # 计算新的样本数
+        num_samples = int(len(audio_data) * target_rate / original_rate)
+        
+        # 使用 scipy 进行重采样
+        resampled = scipy.signal.resample(audio_data, num_samples)
+        
+        return resampled.astype(np.float32)
+    
+    @staticmethod
+    def preprocess_audio(audio_data: np.ndarray, sample_rate: int = None, target_rate: int = TARGET_SAMPLE_RATE) -> Tuple[np.ndarray, int]:
         """
         预处理音频
         1. 转换为单声道（如果是立体声）
-        2. 归一化到 [-1, 1]
+        2. 重采样到目标采样率（如果需要）
+        3. 归一化到 [-1, 1]
         
         Args:
             audio_data: 原始音频数据
+            sample_rate: 原始采样率（如果需要重采样）
+            target_rate: 目标采样率（默认 32000Hz）
             
         Returns:
-            预处理后的音频数据
+            (processed_audio, new_sample_rate): 预处理后的音频数据和新采样率
         """
         # 转单声道
         if len(audio_data.shape) > 1:
@@ -92,7 +123,14 @@ class AudioProcessor:
         if max_val > 0:
             audio_data = audio_data / max_val
         
-        return audio_data
+        # 重采样
+        new_rate = sample_rate
+        if sample_rate is not None and sample_rate != target_rate:
+            print(f"   🔄 重采样: {sample_rate}Hz → {target_rate}Hz")
+            audio_data = AudioProcessor.resample_audio(audio_data, sample_rate, target_rate)
+            new_rate = target_rate
+        
+        return audio_data, new_rate if new_rate else target_rate
     
     @staticmethod
     def get_duration(audio_data: np.ndarray, sample_rate: int) -> float:
@@ -110,12 +148,14 @@ class AudioProcessor:
 
 
 # 便捷函数
-def load_and_preprocess(filepath: str) -> Tuple[int, np.ndarray]:
+def load_and_preprocess(filepath: str, target_rate: int = TARGET_SAMPLE_RATE) -> Tuple[int, np.ndarray]:
     """
     加载并预处理音频（一步完成）
+    自动重采样到 MusicGen 要求的 32000Hz
     
     Args:
         filepath: 音频文件路径
+        target_rate: 目标采样率（默认 32000Hz）
         
     Returns:
         (sample_rate, processed_audio): 采样率和处理后的音频
@@ -126,7 +166,5 @@ def load_and_preprocess(filepath: str) -> Tuple[int, np.ndarray]:
     if not processor.validate_audio(audio_data, sample_rate):
         raise ValueError("音频验证失败")
     
-    processed = processor.preprocess_audio(audio_data)
-    return sample_rate, processed
-
-
+    processed, new_rate = processor.preprocess_audio(audio_data, sample_rate, target_rate)
+    return new_rate, processed

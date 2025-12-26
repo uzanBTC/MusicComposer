@@ -1,7 +1,11 @@
 # MusicGen 项目依赖
 # ==================
-# 注意：PyTorch 需要单独安装，不在此文件中
-# 安装命令：pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+# 
+# 安装步骤：
+# 1. 创建 conda 环境: conda create -n musicgen python=3.12 -y
+# 2. 激活环境: conda activate musicgen
+# 3. 安装 PyTorch: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+# 4. 安装其他依赖: pip install -r requirements.txt
 
 # 核心依赖
 transformers>=4.30.0
@@ -10,10 +14,11 @@ scipy>=1.10.0
 accelerate
 numpy>=1.24.0
 
-# PyTorch 依赖（会自动安装正确版本）
+# PyTorch 兼容依赖
 sympy==1.13.1
 
 # 网络相关
 requests
 pyyaml
 idna
+huggingface_hub
