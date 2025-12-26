@@ -20,7 +20,7 @@ if not os.environ.get("HF_ENDPOINT"):
 # 可选: facebook/musicgen-small (约4GB显存)
 #       facebook/musicgen-medium (约8GB显存)
 #       facebook/musicgen-large (约16GB显存)
-MODEL_NAME = "facebook/musicgen-medium"
+MODEL_NAME = "facebook/musicgen-large"
 DEVICE = "cuda"  # 自动检测会在运行时确定
 
 # ==================
