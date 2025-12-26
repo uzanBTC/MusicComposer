@@ -4,41 +4,39 @@
 
 ## 功能特性
 
-- ✅ 单音频风格学习和生成
-- ✅ 双音频融合生成
-- ✅ 可自定义生成参数
-- ✅ 支持 GPU 加速
-- ✅ 命令行界面
+- 单音频风格学习和生成
+- 双音频融合生成
+- 可自定义生成参数
+- 支持 GPU 加速
+- 命令行界面
 
 ## 快速开始
 
 ### 1. 环境配置
 
-**重要提示**：请严格按照以下顺序安装，避免 PyTorch 版本冲突。
+**环境要求**：
+- Python 3.12
+- CUDA 12.x（推荐，GPU 加速）
+- 8GB+ GPU 显存（使用 medium 模型）
 
 ```bash
 # 步骤 1: 创建 Conda 环境
-conda create -n musicgen python=3.10 -y
+conda create -n musicgen python=3.12 -y
 conda activate musicgen
 
-# 步骤 2: 安装 PyTorch（必须通过 conda 安装，不要用 pip）
-# 如果有 GPU，使用 GPU 版本：
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+# 步骤 2: 安装 PyTorch（使用 pip，版本 >= 2.6）
+# GPU 版本（推荐）：
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
-# 如果没有 GPU 或不确定，使用 CPU 版本：
-# conda install pytorch torchvision torchaudio cpuonly -c pytorch -y
+# CPU 版本（如果没有 GPU）：
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# 步骤 3: 验证 PyTorch 安装
+# 步骤 3: 验证 PyTorch 安装（版本需要 >= 2.6）
 python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA 可用: {torch.cuda.is_available()}')"
 
-# 步骤 4: 安装其他依赖（requirements.txt 中不包含 torch）
+# 步骤 4: 安装其他依赖
 pip install -r requirements.txt
 ```
-
-**注意事项**：
-- ⚠️ **不要**使用 `pip install torch`，这会导致与 conda 安装的版本冲突
-- ✅ 先安装 PyTorch，再安装其他依赖
-- ✅ 如果遇到导入错误，请查看下方的"故障排查"部分
 
 ### 2. 基本使用
 
@@ -52,6 +50,10 @@ python scripts/generate.py --audio1 music1.wav --audio2 music2.wav
 # 自定义参数
 python scripts/generate.py --audio1 s1.wav --audio2 s2.wav --tokens 1024 --guidance 4.0 --output result.wav
 ```
+
+**注意**：首次运行会自动下载模型（medium 约 8GB），请确保网络畅通。
+
+如果无法访问 HuggingFace，程序会自动使用国内镜像（hf-mirror.com）。
 
 ## 项目结构
 
@@ -104,7 +106,7 @@ python scripts/generate.py \
     --guidance 3.5
 ```
 
-### 使用小模型（更快，但质量较低）
+### 使用小模型（更快，显存要求更低）
 
 ```bash
 python scripts/generate.py \
@@ -118,50 +120,50 @@ python scripts/generate.py \
 1. **音频格式**：目前仅支持 WAV 格式
 2. **音频时长**：输入音频至少需要 1 秒
 3. **GPU 要求**：建议使用 GPU 加速，CPU 运行速度较慢
-4. **内存要求**：medium 模型需要约 8GB GPU 内存
+4. **显存要求**：
+   - small: 约 4GB
+   - medium: 约 8GB
+   - large: 约 16GB
 
 ## 故障排查
 
-### PyTorch 导入错误：undefined symbol: iJIT_NotifyEvent
+### PyTorch 版本错误：需要升级到 v2.6
 
-这个错误通常是由于 PyTorch 与系统库版本冲突，或 pip/conda 混合安装导致的。
-
-**快速修复（推荐）**：
+如果看到 `require users to upgrade torch to at least v2.6` 错误：
 
 ```bash
-# 1. 完全卸载所有 PyTorch 相关包
+# 升级 PyTorch
+pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+# 验证版本（需要 >= 2.6）
+python -c "import torch; print(torch.__version__)"
+```
+
+### PyTorch 导入错误：undefined symbol: iJIT_NotifyEvent
+
+这个错误通常是由于 MKL 版本冲突导致的（MKL 2024.1+ 与 PyTorch 不兼容）。
+
+**解决方案**：使用 pip 安装 PyTorch（而不是 conda）
+
+```bash
+# 1. 完全卸载
 pip uninstall torch torchvision torchaudio -y
 conda remove pytorch torchvision torchaudio -y
 
-# 2. 清理缓存
-conda clean --all -y
+# 2. 使用 pip 重新安装（pip 版本静态链接 MKL，不受影响）
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
-# 3. 重新通过 conda 安装（推荐使用 conda，更稳定）
-# CPU 版本：
-conda install pytorch torchvision torchaudio cpuonly -c pytorch -y
-
-# 或 GPU 版本：
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
-
-# 4. 验证安装
-python -c "import torch; print('✅ PyTorch 安装成功')"
+# 3. 验证
+python -c "import torch; print('OK')"
 ```
 
-**如果仍然有问题，尝试修复 Intel MKL 库**：
+### 无法连接 HuggingFace
+
+程序已内置国内镜像支持，会自动切换。如果仍然有问题，手动设置：
 
 ```bash
-# 安装/更新 Intel MKL（conda 方式，更稳定）
-conda install mkl mkl-service intel-openmp -y
-
-# 或者使用 pip（如果 conda 不可用）
-pip install mkl mkl-service
-```
-
-**使用修复脚本**：
-
-```bash
-# 使用项目提供的修复脚本
-python scripts/fix_pytorch.py
+export HF_ENDPOINT=https://hf-mirror.com
+python scripts/generate.py --audio1 your_music.wav
 ```
 
 ### CUDA Out of Memory
@@ -169,12 +171,12 @@ python scripts/fix_pytorch.py
 - 使用更小的模型：`--model facebook/musicgen-small`
 - 减少生成长度：`--tokens 256`
 
-### 生成速度慢
+### sympy 模块找不到
 
-- 检查是否使用 GPU：`python -c "import torch; print(torch.cuda.is_available())"`
-- 确保安装了 CUDA 版本的 PyTorch
+```bash
+pip install sympy==1.13.1
+```
 
 ## 许可证
 
 MIT License
-

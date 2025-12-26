@@ -1,11 +1,19 @@
 # MusicGen 项目依赖
-# 注意：torch、torchvision、torchaudio 应通过 conda 安装，不要使用 pip
-# 详见 README.md 中的安装说明
+# ==================
+# 注意：PyTorch 需要单独安装，不在此文件中
+# 安装命令：pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
+# 核心依赖
 transformers>=4.30.0
 datasets
 scipy>=1.10.0
 accelerate
 numpy>=1.24.0
 
+# PyTorch 依赖（会自动安装正确版本）
+sympy==1.13.1
 
+# 网络相关
+requests
+pyyaml
+idna

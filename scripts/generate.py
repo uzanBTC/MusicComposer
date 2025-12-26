@@ -11,10 +11,12 @@ from pathlib import Path
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# 首先导入配置（会自动设置 HuggingFace 镜像）
+from config.config import DEFAULT_MAX_TOKENS, DEFAULT_GUIDANCE_SCALE, OUTPUT_DIR
+
 from src.audio_processor import load_and_preprocess
 from src.generator import MusicGenerator
 from src.utils import check_cuda, format_duration
-from config.config import DEFAULT_MAX_TOKENS, DEFAULT_GUIDANCE_SCALE, OUTPUT_DIR
 
 
 def main():
